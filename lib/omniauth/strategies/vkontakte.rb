@@ -13,7 +13,7 @@ module OmniAuth
     class Vkontakte < OmniAuth::Strategies::OAuth2
       class NoRawData < StandardError; end
 
-      API_VERSION = '5.8'
+      API_VERSION = '5.60'
 
       DEFAULT_SCOPE = ''
 
@@ -40,10 +40,10 @@ module OmniAuth
           :first_name => raw_info['first_name'],
           :last_name  => raw_info['last_name'],
           :image      => image_url,
-          :location   => location,
-          :urls       => {
-            'Vkontakte' => "http://vk.com/#{raw_info['screen_name']}"
-          },
+          #:location   => location,
+          #:urls       => {
+          #  'Vkontakte' => "http://vk.com/#{raw_info['screen_name']}"
+          #},
         }
       end
 
@@ -56,6 +56,8 @@ module OmniAuth
       def raw_info
         access_token.options[:mode] = :query
         access_token.options[:param_name] = :access_token
+        access_token.options[:timeout] = 5
+        access_token.options[:open_timeout] = 2
         @raw_info ||= begin
           params = {
             :fields   => info_options,
@@ -66,8 +68,9 @@ module OmniAuth
 
           result = access_token.get('/method/users.get', :params => params).parsed["response"]
 
-          raise NoRawData, result unless (result.is_a?(Array) and result.first)
-          result.first
+          #raise NoRawData, result unless (result.is_a?(Array) and result.first)
+          #result.first
+          result && result.first ? result.first : {}
         end
       end
 
@@ -111,7 +114,7 @@ module OmniAuth
       end
 
       def https_option
-        options[:https] || 0
+        options[:https] || 1
       end
 
       def image_url
